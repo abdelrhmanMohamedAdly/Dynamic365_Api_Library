@@ -1,16 +1,15 @@
 name: dynamic365_api
-description: A sample command-line application with basic argument parsing.
+description: A Dart library for seamless integration with Microsoft Dynamics 365 APIs using OData and OAuth2 authentication.
 version: 0.0.1
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/abdelrhmanMohamedAdly/Dynamic365_Api_Library.git
+homepage: https://github.com/abdelrhmanMohamedAdly/Dynamic365_Api_Library.git
 
 environment:
   sdk: ^3.8.1
 
-# Add regular dependencies here.
 dependencies:
-  args: ^2.5.0
   http: ^1.1.0
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.2.2
 
 
 dev_dependencies:
