@@ -109,4 +109,60 @@ class D365ApiService extends D365ServiceBase {
       return false;
     }
   }
+
+  /// get Fields From Entity As List
+  Future<List<dynamic>> getEntityFieldsData({
+    required String entity,
+    List<String>? fields,
+    String? keyField,
+    String? keyValue,
+  }) async {
+    final token = await getAccessToken();
+    if (token == null) return [];
+
+    // Build select query if fields are provided
+    String selectQuery = '';
+    if (fields != null && fields.isNotEmpty) {
+      selectQuery = "\$select=${fields.join(',')}";
+    }
+
+    // Build filter query if keyField and keyValue are provided
+    String filterQuery = '';
+    if (keyField != null && keyValue != null) {
+      filterQuery = "\$filter=$keyField eq '$keyValue'";
+    }
+
+    // Combine select + filter
+    String query = '';
+    if (selectQuery.isNotEmpty && filterQuery.isNotEmpty) {
+      query = "$selectQuery&$filterQuery";
+    } else if (selectQuery.isNotEmpty) {
+      query = selectQuery;
+    } else if (filterQuery.isNotEmpty) {
+      query = filterQuery;
+    }
+
+    final String url = query.isNotEmpty
+        ? "$resource/data/$entity?$query"
+        : "$resource/data/$entity";
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)["value"] ?? [];
+    } else {
+      print(
+          "❌ Failed to get $entity: ${response.statusCode} - ${response.body}");
+      return [];
+    }
+  }
+
+
 }
