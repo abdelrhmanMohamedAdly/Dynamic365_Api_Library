@@ -10,7 +10,13 @@ class D365ApiService extends D365ServiceBase {
     required super.resource,
   });
 
-  /// Get data from entity
+  /// Retrieves data from a specified Dynamics 365 entity using an optional filter.
+  ///
+  /// [entity] - the name of the entity to fetch data from.
+  /// [filterByField] & [filterValue] - optional parameters to filter the result set.
+  ///
+  /// Returns a list of records if the request succeeds, otherwise an empty list.
+
   Future<List<dynamic>> getEntityData({
     required String entity,
     String? filterByField,
@@ -44,7 +50,14 @@ class D365ApiService extends D365ServiceBase {
     }
   }
 
-  /// Post data to entity
+  /// Sends a POST request to create a new record in the specified Dynamics 365 entity.
+  ///
+  /// [entity] - the name of the target entity.
+  /// [payload] - the data to be posted as a new record.
+  /// [filterByField] & [filterValue] - optional filter to target a specific record set.
+  ///
+  /// Returns true if the request succeeds (201/200), otherwise false.
+
   Future<bool> postEntity(String entity,
       Map<String, dynamic> payload, {
         String? filterByField,
@@ -80,7 +93,15 @@ class D365ApiService extends D365ServiceBase {
     }
   }
 
-  /// Update data
+  /// Sends a PATCH request to update an existing record in the specified Dynamics 365 entity.
+  ///
+  /// [entity] - the name of the target entity.
+  /// [payload] - the fields and values to update.
+  /// [keyField] - the primary key field used to identify the record.
+  /// [keyValue] - the value of the key field to locate the record.
+  ///
+  /// Returns true if the request succeeds (204/200), otherwise false.
+
   Future<bool> updateEntity(String entity,
       Map<String, dynamic> payload, {
         required String keyField,
@@ -110,7 +131,15 @@ class D365ApiService extends D365ServiceBase {
     }
   }
 
-  /// get Fields From Entity As List
+  /// Retrieves data from any Dynamics 365 entity as a list.
+  ///
+  /// Supports optional field selection and filtering:
+  /// [entity] - the name of the target entity.
+  /// [fields] - optional list of fields to select from the entity.
+  /// [keyField] & [keyValue] - optional filter to return only matching records.
+  ///
+  /// Returns a list of records (dynamic objects) or an empty list if the request fails.
+
   Future<List<dynamic>> getEntityFieldsData({
     required String entity,
     List<String>? fields,
@@ -164,5 +193,53 @@ class D365ApiService extends D365ServiceBase {
     }
   }
 
+  /// Fetches generic dropdown data from a given entity in Dynamics 365.
+  ///
+  /// The function is reusable for any entity by specifying:
+  /// [entityName] - the name of the data entity in D365.
+  /// [valueField] - the field to be used as the key.
+  /// [displayField] - the field to be used as the display text in the dropdown.
+  ///
+  /// Returns a list of key-value pairs that can be directly bound to a dropdown.
+
+  Future<List<Map<String, String>>> getDropdownData(String token, {
+    required String entityName,
+    required String valueField,
+    required String displayField,
+  }) async {
+    final uri = Uri.parse("$resource/data/$entityName");
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final entities = data['value'] as List;
+
+        return entities
+            .map<Map<String, String>>((e) {
+          final key = e[valueField]?.toString() ?? '';
+          final name = e[displayField]?.toString() ?? '';
+          return {"key": key, "value": name};
+        })
+            .toSet()
+            .toList();
+      } else {
+        throw Exception(
+          '❌ Failed to fetch $entityName: ${response.statusCode}\n${response
+              .body}',
+        );
+      }
+    } catch (e) {
+      print('❗ Exception during getDropdownData: $e');
+      rethrow;
+    }
+  }
 
 }
