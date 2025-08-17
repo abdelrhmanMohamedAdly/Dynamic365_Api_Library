@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'd365_service_base.dart';
+import 'D365ServiceBase.dart';
 
-class D365PutService extends D365ServiceBase {
-  D365PutService({
+class D365ApiService extends D365ServiceBase {
+  D365ApiService({
     required super.tenantId,
     required super.clientId,
     required super.clientSecret,
