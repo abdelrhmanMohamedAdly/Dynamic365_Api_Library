@@ -16,7 +16,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  dynamic365_api: ^1.0.0
+  dynamic365_api: ^1.0.1
 Then run:
 flutter pub get
 
@@ -82,4 +82,3 @@ try {
 📜 License
 This project is licensed under the MIT License.
 See LICENSE for details.
-MIT License - See [LICENSE](https://github.com/abdelrhmanMohamedAdly/Dynamic365_Api_Library/blob/main/LICENSE) for details.

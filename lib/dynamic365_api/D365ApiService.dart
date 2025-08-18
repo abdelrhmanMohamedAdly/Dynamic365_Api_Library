@@ -50,21 +50,28 @@ class D365ApiService extends D365ServiceBase {
     }
   }
 
-  /// Sends a POST request to create a new record in the specified Dynamics 365 entity.
+  /// Sends a POST request to create a record in a Dynamics 365 entity.
   ///
-  /// [entity] - the name of the target entity.
-  /// [payload] - the data to be posted as a new record.
-  /// [filterByField] & [filterValue] - optional filter to target a specific record set.
+  /// Parameters:
+  /// - entity: the entity name (e.g., SalesOrderHeaders, SalesOrderLines)
+  /// - payload: a map of field names and values to create
+  /// - filterByField / filterValue: optional, not usually used with POST
+  /// - mainField: optional, the field to return from the response (like salesOrderId)
   ///
-  /// Returns true if the request succeeds (201/200), otherwise false.
+  /// Returns:
+  /// - the value of mainField if provided and returned by D365
+  /// - null if failed or mainField not set
 
-  Future<bool> postEntity(String entity,
+  Future<String?> postEntity(String entity,
       Map<String, dynamic> payload, {
         String? filterByField,
         String? filterValue,
+        String? mainField,
+
+        /// like salesOrderId
       }) async {
     final token = await getAccessToken();
-    if (token == null) return false;
+    if (token == null) return null;
 
     final url = (filterByField != null &&
         filterByField.isNotEmpty &&
@@ -85,11 +92,17 @@ class D365ApiService extends D365ServiceBase {
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
-      return true;
+      if (mainField != null) {
+        final data = jsonDecode(response.body);
+        return data[mainField];
+      }
+      else {
+        return null;
+      }
     } else {
       print("❌ Failed to post $entity: ${response.statusCode} - ${response
           .body}");
-      return false;
+      return null;
     }
   }
 
