@@ -66,7 +66,7 @@ class D365ApiService extends D365ServiceBase {
     final token = await getAccessToken();
     if (token == null) return false;
 
-    final Uri url = (filterByField != null &&
+    final url = (filterByField != null &&
         filterByField.isNotEmpty &&
         filterValue != null &&
         filterValue.isNotEmpty)
@@ -193,21 +193,42 @@ class D365ApiService extends D365ServiceBase {
     }
   }
 
-  /// Fetches generic dropdown data from a given entity in Dynamics 365.
+  /// Fetch dropdown data from a Dynamics 365 entity.
   ///
-  /// The function is reusable for any entity by specifying:
-  /// [entityName] - the name of the data entity in D365.
-  /// [valueField] - the field to be used as the key.
-  /// [displayField] - the field to be used as the display text in the dropdown.
+  /// Parameters:
+  /// [entity]         - The target data entity name (e.g., Customers, Items).
+  /// [valueField]     - The field name to be used as the unique key (e.g., "CustomerAccount").
+  /// [displayField]   - The field name to be shown in the dropdown (e.g., "Name").
+  /// [filterByField]  - (Optional) A field name used for filtering results.
+  /// [filterValue]    - (Optional) The value to filter by.
   ///
-  /// Returns a list of key-value pairs that can be directly bound to a dropdown.
+  /// Returns:
+  /// A `List<Map<String, String>>` where each map contains:
+  ///   - "key"   : the unique identifier of the record.
+  ///   - "value" : the display name of the record.
+  ///
+  /// Notes:
+  /// - Removes duplicates by converting the list to a Set, then back to a List.
+  /// - Throws an exception if the API request fails.
+  /// - Requires a valid access token from `getAccessToken()`.
 
-  Future<List<Map<String, String>>> getDropdownData(String token, {
-    required String entityName,
+  Future<List<Map<String, String>>> getDropdownData({
+    required String entity,
     required String valueField,
     required String displayField,
+    String? filterByField,
+    String? filterValue,
   }) async {
-    final uri = Uri.parse("$resource/data/$entityName");
+    final token = await getAccessToken();
+    if (token == null) return [];
+
+    final uri = (filterByField != null &&
+        filterByField.isNotEmpty &&
+        filterValue != null &&
+        filterValue.isNotEmpty)
+        ? Uri.parse(
+        "$resource/data/$entity?\$filter=$filterByField eq '$filterValue'")
+        : Uri.parse("$resource/data/$entity");
 
     try {
       final response = await http.get(
@@ -232,7 +253,7 @@ class D365ApiService extends D365ServiceBase {
             .toList();
       } else {
         throw Exception(
-          '❌ Failed to fetch $entityName: ${response.statusCode}\n${response
+          '❌ Failed to fetch $entity: ${response.statusCode}\n${response
               .body}',
         );
       }
